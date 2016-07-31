@@ -1,20 +1,22 @@
 from itch import TwitchAPI, tab_print
 from itch.models import Channel, User
+from itch.times import subtime
 
 
 def print_followers(channel, caching=None, count_following=None,
-                    return_lines=None):
+                    limit=None, return_lines=None):
     if caching:
         TwitchAPI.set_caching(caching)
 
     c = Channel.get(channel)
-    for f in c.list_followers(direction='DESC'):
+    for f in c.list_followers(direction='DESC', limit=limit):
         u = f.user
         d = [
             u.name,
             channel,
             u.created_at,
             f.created_at,
+            subtime(u.created_at, f.created_at)
         ]
 
         if count_following:

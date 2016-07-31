@@ -12,6 +12,9 @@ RECHAT = 'https://rechat.twitch.tv/rechat-messages'
 TMI = 'https://tmi.twitch.tv'
 MAX_GET = 100
 
+LOOTS = 'https://loots.com/api/v1/'
+LOOTS_MAX_GET = 500
+
 try:
     requests.packages.urllib3.disable_warnings()
 except:
@@ -46,7 +49,7 @@ class TwitchAPI(object):
             logger.exception(e)
             raise e
 
-        if "error" in j:
+        if "error" in j and j['error']:
             raise Exception(j.get("error"))
         return j
 

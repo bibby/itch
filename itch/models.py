@@ -1,6 +1,6 @@
 import json
 from itch import TwitchAPI as API
-from itch import KRAKEN, RECHAT, TMI, MAX_GET
+from itch import KRAKEN, RECHAT, TMI, MAX_GET, LOOTS, LOOTS_MAX_GET
 from times import to_datetime
 import re
 
@@ -96,6 +96,29 @@ class Entity(BaseModel):
                 if cap and vods_read >= cap:
                     return
             url = res.get("_links").get("next", None)
+
+    def loots_streams(self, cap=None):
+        url = "{}/search/channels/{}/streams"
+        max_streams = LOOTS_MAX_GET
+        if cap:
+            max_streams = min(cap, LOOTS_MAX_GET)
+
+        params = {
+            "json": json.dumps({
+                "offset": 0,
+                "limit": max_streams,
+                "sort_key": "_t",
+                "sort_order": "desc"
+            })
+        }
+
+        url = url.format(LOOTS, self.id)
+        res = API.get(url, params)
+        for stream in res.get("data", []):
+            yield Stream(**{
+                "created_at": stream.get("_t_start"),
+                "length": stream.get("duration"),
+            })
 
     @staticmethod
     def get_follows(url, cursor=None):
