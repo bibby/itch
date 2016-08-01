@@ -1,7 +1,6 @@
 import os
 import requests
 from log import logger
-import cli
 
 common_headers = {'accept': 'application/vnd.twitchtv.v3+json'}
 client_id = os.environ.get('TWITCH_CLIENT_ID', None)
@@ -57,7 +56,3 @@ class TwitchAPI(object):
 
 def tab_print(*args):
     print "\t".join(map(unicode, args))
-
-
-def cli_main():
-    cli.__cli_main()

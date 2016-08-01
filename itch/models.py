@@ -41,9 +41,9 @@ class Links(BaseModel):
 class Entity(BaseModel):
     def list_followers(self, direction=None, limit=None):
         direction = direction or 'ASC'
-        limit = min(limit, MAX_GET)
+        req_limit = min(limit, MAX_GET)
         url = '{}/channels/{}/follows?direction={}&limit={}'
-        url = url.format(KRAKEN, self.name, direction, limit)
+        url = url.format(KRAKEN, self.name, direction, req_limit)
         sent = 0
         for f in Entity.get_follows(url):
             yield Follow(**f)
@@ -58,9 +58,9 @@ class Entity(BaseModel):
 
     def list_following(self, direction=None, limit=None):
         direction = direction or 'ASC'
-        limit = min(limit, MAX_GET)
+        req_limit = min(limit, MAX_GET)
         url = '{}/users/{}/follows/channels?direction={}&limit={}'
-        url = url.format(KRAKEN, self.name, direction, limit)
+        url = url.format(KRAKEN, self.name, direction, req_limit)
         sent = 0
         for f in Entity.get_follows(url):
             yield Follow(**f)

@@ -15,7 +15,10 @@ setup(
     url='https://github.com/bibby/itch',
     include_package_data=False,
     install_requires=['requests', 'dateutils', 'argparse'],
-    entry_points={'console_scripts': ['itch = itch:cli_main']},
+    entry_points={'console_scripts': [
+        'itch = cli:main',
+        'itch-plot = plot:main'
+    ]},
     keywords='twitch',
     classifiers=[]
 )

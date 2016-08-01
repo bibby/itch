@@ -106,7 +106,7 @@ The ``FileTreeCache`` accepts the optional environment variable ``TWITCH_CACHE_T
 RedisCache
 ~~~~~~~~~~
 
-``rcache.RedisCache`` requires the pip package ``redis``, which is not installed by itch.
+``rcache.RedisCache`` requires the pip module ``redis``, which is not installed by itch.
 This cache makes use the following environment variables:
 
 ::
@@ -120,7 +120,7 @@ This cache makes use the following environment variables:
 MemcacheCache
 ~~~~~~~~~~~~~
 
-``mcache.MemcacheCache`` requires the pip package ``python-memcached``, which is not installed by itch.
+``mcache.MemcacheCache`` requires the pip module ``python-memcached``, which is not installed by itch.
 This cache makes use the ``MEMCACHE_SERVERS`` environment variable, which should be a comma separated list
 of ``<host>:<port>`` items. The default value is ``127.0.0.1:11211``.
 
@@ -151,6 +151,68 @@ The command line tool prints tab-separated reports that are suitable for the plo
                             number of items to pull
       -c {file,redis,memcache}, --cache {file,redis,memcache}
                             cache type. See README for required env vars
+
+
+Plotter
+-------
+
+The cli tool ``itch-plot`` renders charts with data extracted from the ``itch`` CLI or other custom tools. The
+module requires the pip module ``matplotlib``, which is not installed by itch (because ``numpy``).
+
+::
+
+    itch-plot -h
+    usage: itch-plot [-h] [-x XFIELD] [-y YFIELD] [-m XMIN] [-M XMAX] [-n YMIN]
+                     [-N YMAX] [-d DELIMITER] [-r] [-s] [-Y] [-S STREAMS]
+                     [-t {scatter,line,mixed}] [-l LABEL] [-T TITLE]
+                     [infile] [outfile]
+
+    plot generator
+
+    positional arguments:
+      infile                InFile
+      outfile               OutFile
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -x XFIELD             X axis field name
+      -y YFIELD             Y axis field name
+      -m XMIN, --xmin XMIN  min x value
+      -M XMAX, --xmax XMAX  maz x value
+      -n YMIN, --ymin YMIN  yin x value
+      -N YMAX, --ymax YMAX  max y value
+      -d DELIMITER, --delimiter DELIMITER
+                            field delimiter
+      -r, --record          print whole record (for saving subsets)
+      -s, --silent          skip printouts
+      -Y, --summary         print a summary
+      -S STREAMS, --streams STREAMS
+                            streams json
+      -t {scatter,line,mixed}, --type {scatter,line,mixed}
+                            graph type
+      -l LABEL, --label LABEL
+                            x label
+      -T TITLE, --title TITLE
+                            chart title
+
+
+Example data pull and chart render:
+
+::
+
+    # dump the last 1K followers to a file
+    itch -l 1000 -c file followers burkeblack > followers.csv
+
+    # dump the last 20 streams to a file
+    itch -l 20 -c file loots_streams burkeblack > streams.csv
+
+    # plot the followers while overlaying the streams,
+    # trimming the viewport and setting a title.
+    itch-plot -sS streams.csv -m '2016-07-25' -M '2016-08-01' \
+    -T 'BurkeBlack - last 1K' followers.csv plot.png
+
+Here is the `resulting graph <https://scannersweep.com/misc/4e5f315e76ceac2f256a28c53b8144ea.png>`_
+
 
 Todo
 ----
