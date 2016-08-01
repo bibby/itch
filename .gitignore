@@ -2,5 +2,4 @@
 *.egg-info
 build
 dist
-_*
 
