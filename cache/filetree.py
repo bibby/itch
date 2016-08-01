@@ -16,10 +16,10 @@ class FileTreeCache(CacheInterface):
     def get_value(self, key):
         cache_file = FileTreeCache.get_cache_filename(key)
         if os.path.isfile(cache_file):
-            logger.info('CacheHit: ' + key)
+            logger.debug('CacheHit: ' + key)
             with open(cache_file, 'r') as f:
                 return f.read()
-        logger.info('CacheMiss: ' + key)
+        logger.debug('CacheMiss: ' + key)
 
     def set_value(self, key, value=None):
         cache_file = FileTreeCache.get_cache_filename(key)
@@ -28,5 +28,5 @@ class FileTreeCache(CacheInterface):
             os.makedirs(cache_dir)
 
         with open(cache_file, 'w') as f:
-            logger.info('CacheWrite: ' + key)
+            logger.debug('CacheWrite: ' + key)
             f.write(value)

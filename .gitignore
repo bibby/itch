@@ -2,4 +2,5 @@
 *.egg-info
 build
 dist
-test.py
+_*
+

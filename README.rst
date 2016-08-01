@@ -86,9 +86,8 @@ Caching
 -------
 
 Currently, only a file-based cache adapter is ready. Adapters for ``redis`` and ``memcached`` are planned for future releases.
+Cache keys are the ``sha256`` of URLs with query parameters, and the values are compressed responses.
 To add a cache adapter, plug a ``CacheInterface`` compliant subclass directly to the ``itch.TwitchAPI`` before making requests.
-The ``FileTreeCache`` accepts the optional environment variable ``TWITCH_CACHE_TEMP`` to set the cache path on disk.
-
 
 ::
 
@@ -96,6 +95,34 @@ The ``FileTreeCache`` accepts the optional environment variable ``TWITCH_CACHE_T
     from itch import TwitchAPI
 
     TwitchAPI.set_caching(FileTreeCache())
+
+
+FileTreeCache
+~~~~~~~~~~~~~
+
+The ``FileTreeCache`` accepts the optional environment variable ``TWITCH_CACHE_TEMP`` to set the cache path on disk.
+
+
+RedisCache
+~~~~~~~~~~
+
+``rcache.RedisCache`` requires the pip package ``redis``, which is not installed by itch.
+This cache makes use the following environment variables:
+
+::
+
+    REDIS_HOST (default: localhost)
+    REDIS_PORT (default: 6379)
+    REDIS_PASSWORD (default: '')
+    REDIS_DB (default: 1)
+
+
+MemcacheCache
+~~~~~~~~~~~~~
+
+``mcache.MemcacheCache`` requires the pip package ``python-memcached``, which is not installed by itch.
+This cache makes use the ``MEMCACHE_SERVERS`` environment variable, which should be a comma separated list
+of ``<host>:<port>`` items. The default value is ``127.0.0.1:11211``.
 
 
 Todo
