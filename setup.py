@@ -6,7 +6,7 @@ with open('README.rst') as readme:
 
 setup(
     name='itch',
-    version='0.1.0',
+    version='0.2.0',
     packages=find_packages(),
     description='Twitch APIs client',
     long_description=long_description,
@@ -14,7 +14,8 @@ setup(
     author_email='bibby@bbby.org',
     url='https://github.com/bibby/itch',
     include_package_data=False,
-    install_requires=['requests', 'dateutils'],
+    install_requires=['requests', 'dateutils', 'argparse'],
+    entry_points={'console_scripts': ['itch = itch:cli_main']},
     keywords='twitch',
     classifiers=[]
 )

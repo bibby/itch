@@ -125,6 +125,33 @@ This cache makes use the ``MEMCACHE_SERVERS`` environment variable, which should
 of ``<host>:<port>`` items. The default value is ``127.0.0.1:11211``.
 
 
+CLI
+---
+
+The command line tool prints tab-separated reports that are suitable for the plotter.
+
+::
+
+    itch -h
+    usage: itch [-h] [-d {asc,desc}] [-l LIMIT] [-c {file,redis,memcache}]
+            [{followers,following,loots_streams}] [channel]
+
+    Twitch.tv APIs module
+
+    positional arguments:
+      {followers,following,loots_streams}
+                            command
+      channel               channel
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -d {asc,desc}, --direction {asc,desc}
+                            sorting direction
+      -l LIMIT, --limit LIMIT
+                            number of items to pull
+      -c {file,redis,memcache}, --cache {file,redis,memcache}
+                            cache type. See README for required env vars
+
 Todo
 ----
 

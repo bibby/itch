@@ -2,6 +2,7 @@ import json
 from itch import TwitchAPI as API
 from itch import KRAKEN, RECHAT, TMI, MAX_GET, LOOTS, LOOTS_MAX_GET
 from times import to_datetime
+from log import logger
 import re
 
 
@@ -40,11 +41,15 @@ class Links(BaseModel):
 class Entity(BaseModel):
     def list_followers(self, direction=None, limit=None):
         direction = direction or 'ASC'
-        limit = limit or MAX_GET
+        limit = min(limit, MAX_GET)
         url = '{}/channels/{}/follows?direction={}&limit={}'
         url = url.format(KRAKEN, self.name, direction, limit)
+        sent = 0
         for f in Entity.get_follows(url):
             yield Follow(**f)
+            sent += 1
+            if limit and sent >= limit:
+                return
 
     def count_following(self):
         for f in self.list_following(limit=1):
@@ -53,11 +58,15 @@ class Entity(BaseModel):
 
     def list_following(self, direction=None, limit=None):
         direction = direction or 'ASC'
-        limit = limit or MAX_GET
+        limit = min(limit, MAX_GET)
         url = '{}/users/{}/follows/channels?direction={}&limit={}'
         url = url.format(KRAKEN, self.name, direction, limit)
+        sent = 0
         for f in Entity.get_follows(url):
             yield Follow(**f)
+            sent += 1
+            if limit and sent >= limit:
+                return
 
     def live_stream(self):
         url = "{}/streams/{}"
@@ -97,28 +106,26 @@ class Entity(BaseModel):
                     return
             url = res.get("_links").get("next", None)
 
-    def loots_streams(self, cap=None):
+    def loots_streams(self, limit=None, direction=None):
         url = "{}/search/channels/{}/streams"
         max_streams = LOOTS_MAX_GET
-        if cap:
-            max_streams = min(cap, LOOTS_MAX_GET)
+        direction = direction or 'desc'
+        if limit:
+            max_streams = min(limit, LOOTS_MAX_GET)
 
         params = {
             "json": json.dumps({
                 "offset": 0,
                 "limit": max_streams,
                 "sort_key": "_t",
-                "sort_order": "desc"
+                "sort_order": direction.lower()
             })
         }
 
         url = url.format(LOOTS, self.id)
         res = API.get(url, params)
         for stream in res.get("data", []):
-            yield Stream(**{
-                "created_at": stream.get("_t_start"),
-                "length": stream.get("duration"),
-            })
+            yield LootsStream(**stream)
 
     @staticmethod
     def get_follows(url, cursor=None):
@@ -292,4 +299,9 @@ class ChatMessageTags(BaseModel):
 
 
 class Chatters(BaseModel):
+    pass
+
+
+class LootsStream(BaseModel):
+    # TODO
     pass
