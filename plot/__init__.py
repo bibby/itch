@@ -229,7 +229,7 @@ def graph(args):
 
         if not args.silent:
             if args.record:
-                print args.delimiter.join(tuple(record))
+                print args.delimiter.join(map(str, tuple(record)))
             else:
                 print xval, yval, record.name
 

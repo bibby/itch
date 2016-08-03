@@ -1,6 +1,6 @@
 from itch import TwitchAPI, tab_print
 from itch.models import Channel, User
-from itch.times import subtime
+from itch.times import subtime, to_timestamp
 
 
 def print_followers(channel, caching=None, count_following=None,
@@ -18,8 +18,8 @@ def print_followers(channel, caching=None, count_following=None,
         d = [
             u.name,
             channel,
-            u.created_at,
-            f.created_at,
+            to_timestamp(u.created_at),
+            to_timestamp(f.created_at),
             subtime(u.created_at, f.created_at)
         ]
 
@@ -51,8 +51,8 @@ def print_following(channel, caching=None, count_following=None,
         d = [
             u.name,
             c.name,
-            u.created_at,
-            f.created_at,
+            to_timestamp(u.created_at),
+            to_timestamp(f.created_at),
             subtime(u.created_at, f.created_at)
         ]
 
@@ -65,7 +65,8 @@ def print_following(channel, caching=None, count_following=None,
         tab_print(*d)
 
 
-def loots_streams(channel=None, caching=None, limit=None, direction=None, **kwargs):
+def loots_streams(channel=None, caching=None, limit=None,
+                  direction=None, **kwargs):
     __assert_args(channel)
 
     caching = __get_cache(caching)
@@ -75,6 +76,21 @@ def loots_streams(channel=None, caching=None, limit=None, direction=None, **kwar
     channel = Channel.get(channel)
     for stream in channel.loots_streams(limit=limit, direction=direction):
         tab_print(stream.t_start, stream.t_end)
+
+
+def chatters(channel=None, caching=None, **kwargs):
+    __assert_args(channel)
+
+    caching = __get_cache(caching)
+    if caching:
+        TwitchAPI.set_caching(caching)
+
+    channel = Channel.get(channel)
+    chatters = channel.get_chatters()
+    for name in chatters.moderators:
+        print name
+    for name in chatters.viewers:
+        print name
 
 
 def __assert_args(channel=None, **kwargs):
