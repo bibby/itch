@@ -2,10 +2,13 @@ import argparse
 import sys
 import re
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy.stats import gaussian_kde
 from collections import namedtuple
 from datetime import datetime
-from itch.times import to_datetime
+from itch.times import to_datetime, to_timestamp
 from itch.log import logger
+import matplotlib.colors as mcolors
 
 
 headers = [
@@ -15,7 +18,7 @@ headers = [
     'followed',
     'delta',
     'followers',
-    'following'
+    'following',
 ]
 
 record_defaults = [
@@ -127,14 +130,6 @@ def __parse_args(arg_string=None):
     )
 
     args.add_argument(
-        '-Y', '--summary',
-        dest='summary',
-        action='store_true',
-        help='print a summary',
-        default=False,
-    )
-
-    args.add_argument(
         '-S', '--streams',
         dest='streams',
         action='store',
@@ -187,6 +182,23 @@ def __parse_args(arg_string=None):
     return options
 
 
+def make_colormap(seq):
+    """Return a LinearSegmentedColormap
+    seq: a sequence of floats and RGB-tuples. The floats should be increasing
+    and in the interval (0,1).
+    """
+    seq = [(None,) * 3, 0.0] + list(seq) + [1.0, (None,) * 3]
+    cdict = {'red': [], 'green': [], 'blue': []}
+    for i, item in enumerate(seq):
+        if isinstance(item, float):
+            r1, g1, b1 = seq[i - 1]
+            r2, g2, b2 = seq[i + 1]
+            cdict['red'].append([item, r1, r2])
+            cdict['green'].append([item, g1, g2])
+            cdict['blue'].append([item, b1, b2])
+    return mcolors.LinearSegmentedColormap('CustomMap', cdict)
+
+
 def read_file(infile, delimiter):
     with open(infile, 'r') as csv:
         for k, line in enumerate(csv.readlines()):
@@ -194,6 +206,18 @@ def read_file(infile, delimiter):
             rec = lp[:len(headers)]
             rec += record_defaults[len(rec):]
             yield Record(*tuple(rec))
+
+
+def colorize_axis(ax, font_color):
+    ax.yaxis.label.set_color(font_color)
+    ax.xaxis.label.set_color(font_color)
+    ax.spines['bottom'].set_color(font_color)
+    ax.spines['top'].set_color(font_color)
+    ax.spines['right'].set_color(font_color)
+    ax.spines['left'].set_color(font_color)
+
+    ax.tick_params(axis='x', colors=font_color, which='both')
+    ax.tick_params(axis='y', colors=font_color, which='both')
 
 
 def graph(args):
@@ -210,9 +234,14 @@ def graph(args):
     if args.ymax:
         args.ymax = types.get(args.yfield, int)(args.ymax)
 
-    points = set()
+    x = []
+    y = []
+    l = []
     li = 0
+    font_color = (0.7, 0.7, 0.7, 1.0)
+    bg_color = (0.05, 0.05, 0.05)
 
+    logger.info('Gathering data..')
     for record in read_file(args.infile, args.delimiter):
         xval = value(record, args.xfield)
         if args.xmin and args.xmin > xval:
@@ -234,33 +263,62 @@ def graph(args):
                 print xval, yval, record.name
 
         li += 1
-        points.add((xval, yval, li))
+        x.append(xval)
+        y.append(yval)
+        l.append(li)
 
-    if args.summary:
-        print "Items: %d" % (len(points),)
+    logger.info("Items: %d", len(l))
+    logger.info('Setting up plot..')
 
-    l = []
-    x = []
-    y = []
-    line_fill_color = 'r'
-
-    for xp, yp, lp in points:
-        x.append(xp)
-        y.append(yp)
-        l.append(lp)
+    line_fill_color = 'y'
+    line_fill_alpha = 0.03
+    xtype = types.get(args.xfield, int)
+    ytype = types.get(args.yfield, int)
 
     scatter_ax = None
     line_ax = None
     if args.type in ['scatter', 'mixed']:
+
+        dot_size = 5
+        c = mcolors.ColorConverter().to_rgb
+        cmap = make_colormap([
+            c('blue'),
+            c('indigo'),
+            c('purple'),
+            c('magenta'),
+            c('red')
+        ])
+
+        logger.info('Scatter config..')
         fig, scatter_ax = plt.subplots()
-        scatter_ax.grid(True)
+        fig.patch.set_facecolor(bg_color)
+
+        scatter_ax.grid(True, color=font_color)
+        scatter_ax.set_axis_bgcolor(bg_color)
         scatter_ax.set_ylabel(args.yfield)
         scatter_ax.set_xlabel(args.label or args.xfield)
-        plt.scatter(x, y, s=10)
+
+        colorize_axis(scatter_ax, font_color)
+
+        logger.info('Calculate the point density..')
+        xx = x
+        if xtype == _dt:
+            xx = [to_timestamp(xv) for xv in x]
+
+        yy = y
+        if ytype == _dt:
+            yy = [to_timestamp(yv) for yv in y]
+
+        xy = np.vstack([xx, yy])
+        z = gaussian_kde(xy)(xy)
+
+        logger.info('Drawing scatter..')
+        plt.scatter(x, y, c=z, s=dot_size, edgecolor='', cmap=cmap)
         if types.get(args.yfield, int) == int:
             scatter_ax.set_ylim(ymin=args.ymin or 0, ymax=args.ymax)
 
     if args.type in ['line', 'mixed']:
+        logger.info('Setting up line chart..')
         if scatter_ax:
             line_ax = scatter_ax.twinx()
             line_ylabel_rot = 270
@@ -269,14 +327,22 @@ def graph(args):
             fig, line_ax = plt.subplots()
             line_ylabel_rot = None
             line_ax.grid(True)
+
         x = sorted(x)
         l = sorted(l)
-        line_ax.set_ylabel('count', rotation=line_ylabel_rot)
+        line_ax.set_ylabel('count', rotation=line_ylabel_rot, labelpad=20)
+        colorize_axis(line_ax, font_color)
+
+        logger.info('Drawing line chart..')
         plt.plot(x, l, line_fill_color)
-        line_ax.fill_between(x, l, facecolor=line_fill_color, alpha=0.33)
+        line_ax.fill_between(
+            x,
+            l,
+            facecolor=line_fill_color,
+            alpha=line_fill_alpha
+        )
 
-
-    xtype = types.get(args.xfield, int)
+    logger.info('Limits and ticks..')
     if args.xmin:
         plt.xlim(xmin=args.xmin or 0, xmax=args.xmax)
 
@@ -291,10 +357,18 @@ def graph(args):
         plt.ylim(ymin=args.ymin or 0, ymax=args.ymax)
 
     if args.title:
-        plt.title(args.title)
+        plt.title(args.title, color=font_color)
 
     logger.info('Rendering figure: %s', args.outfile)
-    plt.savefig(args.outfile, bbox_inches='tight')
+
+    fig.set_size_inches(12, 6)
+    plt.savefig(
+        args.outfile,
+        facecolor=fig.get_facecolor(),
+        edgecolor='none',
+        bbox_inches='tight',
+        dpi=180
+    )
 
 
 def plot_streams(streams_src, minx, maxx):

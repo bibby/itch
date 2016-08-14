@@ -235,8 +235,13 @@ class Video(BaseModel):
             raise Exception("Expected chat replay boundary error message.")
 
         msg = res.get("errors")[0].get("detail")
-        mat = re.match('\d+ is not between (\d+) and (\d+)', msg)
-        return tuple(map(int, [mat.group(1), mat.group(2)]))
+        try:
+            mat = re.match('-?\d+ is not between (\d+) and (\d+)', msg)
+            return tuple(map(int, [mat.group(1), mat.group(2)]))
+        except Exception as e:
+            logger.warning(msg)
+            logger.exception(e)
+            raise
 
     def _replay_chat(self, start, end):
         caches = [set(), set()]

@@ -157,7 +157,7 @@ Plotter
 -------
 
 The cli tool ``itch-plot`` renders charts with data extracted from the ``itch`` CLI or other custom tools. The
-module requires the pip module ``matplotlib``, which is not installed by itch (because ``numpy``).
+module requires the pip modules ``matplotlib`` and ``scipy``, which is not installed by itch (because ``numpy``).
 
 ::
 

@@ -1,5 +1,5 @@
 from itch import TwitchAPI, tab_print
-from itch.models import Channel, User
+from itch.models import Channel, User, Video
 from itch.times import subtime, to_timestamp
 
 
@@ -20,7 +20,8 @@ def print_followers(channel, caching=None, count_following=None,
             channel,
             to_timestamp(u.created_at),
             to_timestamp(f.created_at),
-            subtime(u.created_at, f.created_at)
+            subtime(u.created_at, f.created_at),
+            0,
         ]
 
         if count_following:
@@ -53,7 +54,8 @@ def print_following(channel, caching=None, count_following=None,
             c.name,
             to_timestamp(u.created_at),
             to_timestamp(f.created_at),
-            subtime(u.created_at, f.created_at)
+            subtime(u.created_at, f.created_at),
+            c.followers,
         ]
 
         if count_following:
@@ -91,6 +93,29 @@ def chatters(channel=None, caching=None, **kwargs):
         print name
     for name in chatters.viewers:
         print name
+
+
+def created(channel=None, caching=None, **kwargs):
+    __assert_args(channel)
+
+    caching = __get_cache(caching)
+    if caching:
+        TwitchAPI.set_caching(caching)
+
+    channel = Channel.get(channel)
+    tab_print(channel.name, to_timestamp(channel.created_at))
+
+
+def chatlog(channel, **kwargs):
+    video = Video.get(channel)
+    for m in video.chat_replay():
+        try:
+            print u" : ".join([
+                m['from'].encode('utf8'),
+                m.message.encode('utf8')]
+            )
+        except:
+            print "ERR <unprintable>"
 
 
 def __assert_args(channel=None, **kwargs):

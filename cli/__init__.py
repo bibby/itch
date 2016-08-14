@@ -6,6 +6,8 @@ reports = dict(
     following=reports.print_following,
     loots_streams=reports.loots_streams,
     chatters=reports.chatters,
+    chatlog=reports.chatlog,
+    created=reports.created,
 )
 
 
