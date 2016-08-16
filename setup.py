@@ -4,9 +4,12 @@ from setuptools import setup, find_packages
 with open('README.rst') as readme:
     long_description = readme.read()
 
+plot_requires = ['matplotlib', 'scipy']
+cache_requires = ['redis', 'python-memcached']
+
 setup(
     name='itch',
-    version='0.2.1',
+    version='0.3.0',
     packages=find_packages(),
     description='Twitch APIs client',
     long_description=long_description,
@@ -19,6 +22,11 @@ setup(
         'itch = cli:main',
         'itch-plot = plot:main'
     ]},
+    extras_require={
+        'plot':  plot_requires,
+        'cache': cache_requires,
+        'complete': list(set(plot_requires + cache_requires)),
+    },
     keywords='twitch',
     classifiers=[]
 )

@@ -106,7 +106,7 @@ The ``FileTreeCache`` accepts the optional environment variable ``TWITCH_CACHE_T
 RedisCache
 ~~~~~~~~~~
 
-``rcache.RedisCache`` requires the pip module ``redis``, which is not installed by itch.
+``rcache.RedisCache`` requires the pip module ``redis``, which is not installed by itch. Starting with itch 0.3, the required modules can be installed by pip installing ``itch[cache]`` or ``itch[complete]``.
 This cache makes use the following environment variables:
 
 ::
@@ -124,6 +124,8 @@ MemcacheCache
 This cache makes use the ``MEMCACHE_SERVERS`` environment variable, which should be a comma separated list
 of ``<host>:<port>`` items. The default value is ``127.0.0.1:11211``.
 
+Starting with itch 0.3, the required modules can be installed by pip installing ``itch[cache]`` or ``itch[complete]``.
+
 
 CLI
 ---
@@ -132,14 +134,15 @@ The command line tool prints tab-separated reports that are suitable for the plo
 
 ::
 
-    itch -h
+    $ itch -h
     usage: itch [-h] [-d {asc,desc}] [-l LIMIT] [-c {file,redis,memcache}]
-            [{followers,following,loots_streams}] [channel]
+                [{chatlog,created,chatters,num_following,num_followers,followers,following,loots_streams}]
+                [channel]
 
     Twitch.tv APIs module
 
     positional arguments:
-      {followers,following,loots_streams}
+      {chatlog,created,chatters,num_following,num_followers,followers,following,loots_streams}
                             command
       channel               channel
 
@@ -151,20 +154,20 @@ The command line tool prints tab-separated reports that are suitable for the plo
                             number of items to pull
       -c {file,redis,memcache}, --cache {file,redis,memcache}
                             cache type. See README for required env vars
-
-
 Plotter
 -------
 
 The cli tool ``itch-plot`` renders charts with data extracted from the ``itch`` CLI or other custom tools. The
 module requires the pip modules ``matplotlib`` and ``scipy``, which is not installed by itch (because ``numpy``).
 
+Starting with itch 0.3, the required modules can be installed by pip installing ``itch[plot]`` or ``itch[complete]``.
+
 ::
 
-    itch-plot -h
+    $ itch-plot -h
     usage: itch-plot [-h] [-x XFIELD] [-y YFIELD] [-m XMIN] [-M XMAX] [-n YMIN]
-                     [-N YMAX] [-d DELIMITER] [-r] [-s] [-Y] [-S STREAMS]
-                     [-t {scatter,line,mixed}] [-l LABEL] [-T TITLE]
+                     [-N YMAX] [-d DELIMITER] [-r] [-s] [-S STREAMS]
+                     [-t {scatter,line,mixed}] [-l LABEL] [-T TITLE] [-D]
                      [infile] [outfile]
 
     plot generator
@@ -185,7 +188,6 @@ module requires the pip modules ``matplotlib`` and ``scipy``, which is not insta
                             field delimiter
       -r, --record          print whole record (for saving subsets)
       -s, --silent          skip printouts
-      -Y, --summary         print a summary
       -S STREAMS, --streams STREAMS
                             streams json
       -t {scatter,line,mixed}, --type {scatter,line,mixed}
@@ -194,6 +196,7 @@ module requires the pip modules ``matplotlib`` and ``scipy``, which is not insta
                             x label
       -T TITLE, --title TITLE
                             chart title
+      -D, --density         Density coloration; much slower renders
 
 
 Example data pull and chart render:

@@ -1,14 +1,6 @@
 import sys
 import argparse
-from itch import reports
-reports = dict(
-    followers=reports.print_followers,
-    following=reports.print_following,
-    loots_streams=reports.loots_streams,
-    chatters=reports.chatters,
-    chatlog=reports.chatlog,
-    created=reports.created,
-)
+from itch.reports import reports
 
 
 def main():

@@ -3,13 +3,10 @@ from itch.models import Channel, User, Video
 from itch.times import subtime, to_timestamp
 
 
-def print_followers(channel, caching=None, count_following=None,
+def print_followers(channel, count_following=None,
                     limit=None, direction=None, return_lines=None,
                     **kwargs):
-    caching = __get_cache(caching)
-    if caching:
-        TwitchAPI.set_caching(caching)
-
+    __set_caching(**kwargs)
     direction = direction or 'DESC'
 
     c = Channel.get(channel)
@@ -33,14 +30,11 @@ def print_followers(channel, caching=None, count_following=None,
         tab_print(*d)
 
 
-def print_following(channel, caching=None, count_following=None,
+def print_following(channel, count_following=None,
                     limit=None, direction=None, return_lines=None,
                     **kwargs):
 
-    caching = __get_cache(caching)
-    if caching:
-        TwitchAPI.set_caching(caching)
-
+    __set_caching(**kwargs)
     direction = direction or 'DESC'
 
     u = User.get(channel)
@@ -67,25 +61,19 @@ def print_following(channel, caching=None, count_following=None,
         tab_print(*d)
 
 
-def loots_streams(channel=None, caching=None, limit=None,
+def loots_streams(channel=None, limit=None,
                   direction=None, **kwargs):
     __assert_args(channel)
-
-    caching = __get_cache(caching)
-    if caching:
-        TwitchAPI.set_caching(caching)
+    __set_caching(**kwargs)
 
     channel = Channel.get(channel)
     for stream in channel.loots_streams(limit=limit, direction=direction):
         tab_print(stream.t_start, stream.t_end)
 
 
-def chatters(channel=None, caching=None, **kwargs):
+def chatters(channel=None, **kwargs):
     __assert_args(channel)
-
-    caching = __get_cache(caching)
-    if caching:
-        TwitchAPI.set_caching(caching)
+    __set_caching(**kwargs)
 
     channel = Channel.get(channel)
     chatters = channel.get_chatters()
@@ -95,15 +83,28 @@ def chatters(channel=None, caching=None, **kwargs):
         print name
 
 
-def created(channel=None, caching=None, **kwargs):
+def created(channel=None, **kwargs):
     __assert_args(channel)
-
-    caching = __get_cache(caching)
-    if caching:
-        TwitchAPI.set_caching(caching)
+    __set_caching(**kwargs)
 
     channel = Channel.get(channel)
     tab_print(channel.name, to_timestamp(channel.created_at))
+
+
+def following(channel=None, **kwargs):
+    __assert_args(channel)
+    __set_caching(**kwargs)
+
+    channel = User(name=channel)
+    tab_print(channel.name, channel.count_following())
+
+
+def followers(channel=None, **kwargs):
+    __assert_args(channel)
+    __set_caching(**kwargs)
+
+    channel = Channel.get(channel)
+    tab_print(channel.name, channel.followers)
 
 
 def chatlog(channel, **kwargs):
@@ -133,3 +134,20 @@ def __get_cache(cache):
     if cache == 'memcache':
         from cache.mcache import MemcacheCache
         return MemcacheCache()
+
+
+def __set_caching(**kwargs):
+    caching = __get_cache(kwargs.get('caching'))
+    if caching:
+        TwitchAPI.set_caching(caching)
+
+reports = dict(
+    followers=print_followers,
+    following=print_following,
+    loots_streams=loots_streams,
+    chatters=chatters,
+    chatlog=chatlog,
+    created=created,
+    num_following=following,
+    num_followers=followers,
+)
