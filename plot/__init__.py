@@ -161,6 +161,13 @@ def __parse_args(arg_string=None):
     )
 
     args.add_argument(
+        '-D', '--density',
+        dest='density',
+        action='store_true',
+        help='Density coloration; much slower renders',
+    )
+
+    args.add_argument(
         'infile',
         nargs='?',
         action='store',
@@ -309,8 +316,11 @@ def graph(args):
         if ytype == _dt:
             yy = [to_timestamp(yv) for yv in y]
 
-        xy = np.vstack([xx, yy])
-        z = gaussian_kde(xy)(xy)
+        if args.density:
+            xy = np.vstack([xx, yy])
+            z = gaussian_kde(xy)(xy)
+        else:
+            z = 'b'
 
         logger.info('Drawing scatter..')
         plt.scatter(x, y, c=z, s=dot_size, edgecolor='', cmap=cmap)
